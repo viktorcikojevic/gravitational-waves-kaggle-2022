@@ -1,0 +1,4 @@
+generated-signals/*
+kaggle-data/train/*
+kaggle-data/test/*
+*wandb*
