@@ -2,3 +2,4 @@ generated-signals/*
 kaggle-data/train/*
 kaggle-data/test/*
 *wandb*
+datasets/dataset-v1/generated-data/*
