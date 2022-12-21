@@ -7,6 +7,7 @@ This dataset is a synthetic dataset and it has following features:
 - Images are then transformed to (360, 256, 2): Max function is applied each 16 pixels in the time axis. This is done to reduce the size of the dataset. 
 - The last dimension is for the H1 and L1, respectively.
 - It has 1024 images of signals and 1024 images of noise.
+- Each pixel is normalized to [0, 255] range.
 
 ## Generation parameters
 
