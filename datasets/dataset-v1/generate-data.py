@@ -164,7 +164,7 @@ def generate_signals(file, h0, depth, start, h1_timestamp, l1_timestamp, frequen
         
         # print("max of x", np.max(x))
         
-        return 255 * x / np.max(x)
+        return np.squeeze(255 * x / np.max(x))
     
     amplitudes["H1"] = preprocess_amplitude(amplitudes["H1"])
     amplitudes["L1"] = preprocess_amplitude(amplitudes["L1"])
@@ -225,7 +225,7 @@ files = df_data["filename"].tolist() * 2000 #
 seed = int(sys.argv[1])
 np.random.default_rng(seed).shuffle(files)
 # 1.5 minutes for 128 files. For 128000 files it will take: 128000/128 * 1.5 = 1500 minutes =  25 hours
-files = files[:1024] # 1000 generates 4.7 GB of data. 700/4.7 = 148. 
+files = files[:42_000] # 1000 generates 4.7 GB of data. 700/4.7 = 148. 
 
 npy_directory = f"{root}/generated-data/signals" 
 # if the directory does not exist, create it
@@ -245,7 +245,7 @@ if not os.path.exists(npy_directory):
 # for seed, file in tqdm(enumerate(files)):
 #     generate_signals_for_file(file, seed)
 
-Parallel(n_jobs=16)(delayed(generate_signals_for_file)(file, int(690E+05 + seed)) for seed, file in tqdm(enumerate(files)))
+Parallel(n_jobs=14)(delayed(generate_signals_for_file)(file, int(690E+05 + seed)) for seed, file in tqdm(enumerate(files)))
 
 
 # /home/viktor/Documents/generated-data/signals/amplitudes_0b50df53b_19.39823772253202_True.npyGenerating 

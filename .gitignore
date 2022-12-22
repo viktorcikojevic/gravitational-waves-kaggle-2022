@@ -3,3 +3,5 @@ kaggle-data/train/*
 kaggle-data/test/*
 *wandb*
 datasets/dataset-v1/generated-data/*
+datasets/dataset-v1/preprocessed-data/*
+*h5*
