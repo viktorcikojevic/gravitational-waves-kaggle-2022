@@ -37,14 +37,14 @@ def train(depth_min):
     WANDB_LOG = False
 
 
-    df = pd.read_csv("/media/viktor/T7/gravitational-waves-kaggle-2022/datasets/dataset-v1/data.csv")
+    df = pd.read_csv("/media/viktor/T7/gravitational-waves-kaggle-2022/datasets/dataset-v2/data.csv")
 
 
     # df["file"] = df["file"].str.replace("max_time_2_mean", "max_time_2_mean_TMP")
 
     # take rows with depth smaller than 20
-    df = df[df["depth"] < depth_min+2].reset_index(drop=True)
-    df = df[df["depth"] > depth_min].reset_index(drop=True)
+    # df = df[df["depth"] < depth_min+2].reset_index(drop=True)
+    # df = df[df["depth"] > depth_min].reset_index(drop=True)
     print(df)
 
 
