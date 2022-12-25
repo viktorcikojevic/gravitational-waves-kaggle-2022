@@ -7,5 +7,8 @@ datasets/dataset-v1/preprocessed-data/*
 datasets/dataset-v2/generated-data/*
 datasets/dataset-v2/preprocessed-data/*
 *h5*
+*.zip
+*.png
+*DS_Store
 kaggle-data/preprocessed/train/*
 kaggle-data/preprocessed/test/*
