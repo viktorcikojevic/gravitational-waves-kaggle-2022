@@ -6,6 +6,8 @@ datasets/dataset-v1/generated-data/*
 datasets/dataset-v1/preprocessed-data/*
 datasets/dataset-v2/generated-data/*
 datasets/dataset-v2/preprocessed-data/*
+datasets/dataset-v3/generated-data/*
+datasets/dataset-v3/preprocessed-data/*
 datasets/realistic_noise_256/realistic_noise/*
 *h5*
 *.zip
@@ -17,3 +19,5 @@ kaggle-data/preprocessed-2/train/*
 kaggle-data/preprocessed-2/test/*
 kaggle-data/preprocessed-3/train/*
 kaggle-data/preprocessed-3/test/*
+kaggle-data/preprocessed-4/train/*
+kaggle-data/preprocessed-4/test/*
