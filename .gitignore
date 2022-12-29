@@ -6,9 +6,14 @@ datasets/dataset-v1/generated-data/*
 datasets/dataset-v1/preprocessed-data/*
 datasets/dataset-v2/generated-data/*
 datasets/dataset-v2/preprocessed-data/*
+datasets/realistic_noise_256/realistic_noise/*
 *h5*
 *.zip
 *.png
 *DS_Store
 kaggle-data/preprocessed/train/*
 kaggle-data/preprocessed/test/*
+kaggle-data/preprocessed-2/train/*
+kaggle-data/preprocessed-2/test/*
+kaggle-data/preprocessed-3/train/*
+kaggle-data/preprocessed-3/test/*

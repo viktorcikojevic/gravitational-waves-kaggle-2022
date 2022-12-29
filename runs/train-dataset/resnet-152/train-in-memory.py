@@ -26,7 +26,7 @@ from wandb.keras import WandbCallback
 
 from PIL import Image
 
-
+from sklearn.utils import shuffle
 
 
 def train(depth_min):
@@ -38,7 +38,16 @@ def train(depth_min):
     WANDB_LOG = False
 
 
-    df = pd.read_csv("/media/viktor/T7/gravitational-waves-kaggle-2022/datasets/dataset-v1/data.csv")
+    # df = pd.read_csv("/media/viktor/T7/gravitational-waves-kaggle-2022/datasets/dataset-v1/data.csv")
+    
+    
+    df = pd.read_csv("/media/viktor/T7/gravitational-waves-kaggle-2022/kaggle-data/preprocessed-2/train-preprocessed.csv")
+    df["preprocessed_filename"] = df["preprocessed_filename"].apply(lambda x: x.replace("/media/viktor/T7/gravitational-waves-kaggle-2022", "/media/viktor/T7/gravitational-waves-kaggle-2022/kaggle-data/preprocessed-2"))
+    # rename "preprocessed_filename" to "file" and "target" to "label"
+    df.rename(columns={"preprocessed_filename": "file", "target": "label"}, inplace=True)
+    df = df[df["label"] != -1].reset_index(drop=True)
+    
+    
     # df_2 = pd.read_csv("/media/viktor/T7/gravitational-waves-kaggle-2022/datasets/dataset-v2/data.csv")
     # # concatenate the two dataframes
     # df = pd.concat([df, df_2], ignore_index=True)
@@ -56,7 +65,7 @@ def train(depth_min):
 
     # Get all the unique names from the dataframe
     names = df["file"].unique()
-    train_names, test_names = train_test_split(names, test_size=0.1, random_state=42)
+    train_names, test_names = train_test_split(names, test_size=0.15, random_state=42)
 
     # create df_train and df_test dataframes
     df_train = df[df["file"].isin(train_names)]
@@ -74,17 +83,21 @@ def train(depth_min):
     train_files = signal_data_train + noise_data_train
     test_files = signal_data_test + noise_data_test
 
+    train_labels = [1] * len(signal_data_train) + [0] * len(noise_data_train)
+    test_labels = [1] * len(signal_data_test) + [0] * len(noise_data_test)
 
+    
     # shuffle train_files and train_labels in the same way
-    import random
-    random.seed(42)
-    random.shuffle(train_files)
-    random.shuffle(test_files)
+    train_files, train_labels = shuffle(train_files, train_labels)
+    # shuffle test_files and test_labels in the same way
+    test_files, test_labels = shuffle(test_files, test_labels)
     
 
+    
+    
     # Load numpy arrays with tf.data.Dataset. Paths to numpy arrays are given in train_files and test_files. Data has a label 0 if it's a signal from h0, and 1 if it's a signal from h1.
-    train_dataset = tf.data.Dataset.from_tensor_slices(train_files)
-    test_dataset = tf.data.Dataset.from_tensor_slices(test_files)
+    train_dataset = tf.data.Dataset.from_tensor_slices((train_files, train_labels))
+    test_dataset = tf.data.Dataset.from_tensor_slices((test_files, test_labels))
     
     
 
@@ -93,7 +106,7 @@ def train(depth_min):
 
     # Load numpy arrays from file paths. Load then in the following way:
     # The file names are in the following format: 'amplitudes_a80309059_0_17.739233746429086_H1_True.npy' and 'amplitudes_a80309059_0_17.739233746429086_L1_True.npy'. Load both files and put them in each channel. The label is the same for both files. The label is 1 if the file name contains 'True', and 0 if it contains 'False'.
-    def load_data(file_path, test_data=False):
+    def load_data(file_path, label, test_data=False):
         # Load the numpy arrays
         # The file names are in the following format: 'amplitudes_a80309059_0_17.739233746429086_H1_True.npy' and 'amplitudes_a80309059_0_17.739233746429086_L1_True.npy'. Load both files and put them in each channel. The label is the same for both files. The label is 1 if the file name contains 'True', and 0 if it contains 'False'.
         file_path = file_path.numpy().decode("utf-8")
@@ -107,18 +120,18 @@ def train(depth_min):
         data *= 1. + 0.05 * np.random.randn(*data.shape)
     
         # randomly shift the data
-        shift = np.random.randint(-100, 200)
-        data = np.roll(data, shift, axis=0)
-        shift = np.random.randint(-100, 200)
-        data = np.roll(data, shift, axis=1)
+        # shift = np.random.randint(-100, 200)
+        # data = np.roll(data, shift, axis=0)
+        # shift = np.random.randint(-100, 200)
+        # data = np.roll(data, shift, axis=1)
         
         
-        # # randomly flip the data AROUND THE Y AXIS
-        # if np.random.rand() > 0.25:
-        #     data = np.flip(data, axis=0)
-        # # randomly flip the data AROUND THE X AXIS
-        # if np.random.rand() > 0.25:
-        #     data = np.flip(data, axis=1)
+        # randomly flip the data AROUND THE Y AXIS
+        if np.random.rand() > 0.25:
+            data = np.flip(data, axis=0)
+        # randomly flip the data AROUND THE X AXIS
+        if np.random.rand() > 0.25:
+            data = np.flip(data, axis=1)
         
 
         # clip data to [0, 255]
@@ -128,24 +141,27 @@ def train(depth_min):
         
         # # Data augmentation with df_noise
         # # Get the random folder from folders
-        # random_folder_h1 = random.choice(folders_h1)
-        # random_folder_l1 = random.choice(folders_l1)        
         
-        # random_H1 = np.array(Image.open(f"{random_folder_h1}/H1.png"))
-        # random_L1 = np.array(Image.open(f"{random_folder_l1}/L1.png"))
+        # if np.random.rand() > 0.5:
         
-        
-        
-        
-        # random_data = np.stack([random_H1, random_L1], axis=2)
-        
-        # # mix the data with the random data as x*data + (1-x)*random_data, where x is a random number between 0.3 and 1
-        # x = np.random.uniform(0.1, 0.2)
-        # data = random_data + x * data
-        # data = 255 * data / np.max(data)
-        
-        # # clip data to [0, 255]
-        # data = np.clip(data, 0, 255)
+        #     random_folder_h1 = random.choice(folders_h1)
+        #     random_folder_l1 = random.choice(folders_l1)        
+            
+        #     random_H1 = np.array(Image.open(f"{random_folder_h1}/H1.png"))
+        #     random_L1 = np.array(Image.open(f"{random_folder_l1}/L1.png"))
+            
+            
+            
+            
+        #     random_data = np.stack([random_H1, random_L1], axis=2)
+            
+        #     # mix the data with the random data as x*data + (1-x)*random_data, where x is a random number between 0.3 and 1
+        #     x = np.random.uniform(0.5, 1.)
+        #     data = random_data + x * data
+        #     data = 255 * data / np.max(data)
+            
+        #     # clip data to [0, 255]
+        #     data = np.clip(data, 0, 255)
             
         
                 
@@ -153,16 +169,15 @@ def train(depth_min):
         data = 2 * data / 255.
         data -= 1.
         
-        label = 1 if "True" in file_path else 0
         return data, label
         
         
 
 
     # call the load function on each element of the dataset using tf.py_function
-    train_dataset = train_dataset.map(lambda x: tf.py_function(load_data, [x], [tf.float32, tf.int32]))
-    # For test data, pass True to the load_data function
-    test_dataset = test_dataset.map(lambda x: tf.py_function(load_data, [x], [tf.float32, tf.int32]))
+    train_dataset = train_dataset.map(lambda x, y: tf.py_function(load_data, [x, y], [tf.float32, tf.int32]))
+    test_dataset = test_dataset.map(lambda x, y: tf.py_function(load_data, [x, y], [tf.float32, tf.int32]))
+    
 
     # # remove the last dimension of the data
     train_dataset = train_dataset.map(lambda x, y: (tf.squeeze(x), y))
@@ -227,10 +242,15 @@ def train(depth_min):
 
 
     def create_model():
-        base_model = tf.keras.applications.ResNet152V2(include_top=False, 
-                                weights=None, 
-                                    input_tensor=tf.keras.Input(shape=(360, 256, 2))
+        base_model = tf.keras.applications.ResNet152V2(include_top=True, 
+                                weights=None,
+                                input_tensor=tf.keras.Input(shape=(360, 256, 2)),
+                                classifier_activation="sigmoid",
+                                classes=1
                                     )
+        return base_model
+        
+        
         inputs = tf.keras.layers.Input(shape=(360, 256, 2))
         # x = largeKernelInitializer()(inputs)
         x = base_model(inputs)
@@ -243,8 +263,11 @@ def train(depth_min):
         model = tf.keras.models.Model(inputs=inputs, outputs=x)
         return model
 
+
+
     model = create_model()
-    
+    model.summary()
+    # exit()
     
     model = GAModelWrapper(accum_steps=ACCUM_STEPS, inputs=model.input, outputs=model.output)
     
@@ -260,7 +283,7 @@ def train(depth_min):
     # --- Warmup ---
 
     # For each BatchNormalization layer in model.layers[-2].layers, set the momentum to 0.999
-    for layer in model.layers[1].layers:
+    for layer in model.layers:
         if isinstance(layer, tf.keras.layers.BatchNormalization):
             init_momentum = 0.95
             print(f"setting momentum to {init_momentum} for layer: ", layer.name)
@@ -298,10 +321,10 @@ def train(depth_min):
     
     
     # set the learning rate to 5.E-5
-    model.optimizer.learning_rate = 5.E-4
+    model.optimizer.learning_rate = 1.E-4
     
     
-    for layer in model.layers[1].layers:
+    for layer in model.layers:
         if isinstance(layer, tf.keras.layers.BatchNormalization):
             init_momentum = 0.9999
             print(f"setting momentum to {init_momentum} for layer: ", layer.name)
@@ -331,8 +354,8 @@ def train(depth_min):
         def on_epoch_end(self, epoch, logs=None):
             if logs.get('val_auc') > self.best:
                 self.best = logs.get('val_auc')
-                print(f"Saving model with val_auc: {self.best}")
-                model.save("best_model.h5")
+                print(f"\nSaving model with val_auc: {self.best}")
+                model.save("best_model/best_model.h5")
     
     
     history = model.fit(train_dataset, 
@@ -344,7 +367,7 @@ def train(depth_min):
             shuffle=True,
             callbacks=[
                 WandbCallback(save_model=False), 
-                SaveBest(),
+                SaveBest()
                 ]
             )
 
