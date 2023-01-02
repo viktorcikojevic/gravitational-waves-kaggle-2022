@@ -222,6 +222,7 @@ def train(depth_min):
             init_momentum = 0.9999
             print(f"setting momentum to {init_momentum} for layer: ", layer.name)
             layer.momentum = init_momentum
+        
 
     
     for layer in model.layers[-1].layers:
